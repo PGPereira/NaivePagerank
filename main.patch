@@ -1,0 +1,68 @@
+--- main.c	2015-09-27 18:59:07.020816834 -0300
++++ main2.c	2015-09-27 19:07:48.112711197 -0300
+@@ -1,8 +1,12 @@
+ #include <stdio.h>
+ #include <math.h>
+ #include <stdlib.h>
++#include <time.h>
+ #include "matrix.h"
+ #include "vector.h"
++#ifndef _TOTAL
++#define _TOTAL 5
++#endif
+ 
+ int main(int argc, char const *argv[]) {
+   unsigned D;             // Numero de paginas. (Dimensão da matriz)
+@@ -10,23 +14,41 @@
+   double **matriz = NULL; // Matriz a ser alocada.
+   double **saida = NULL;  // Matriz de saida.
+   unsigned i, j;          // Posições onde a matriz sera setada para 1
++  double tempo[5], media = 0;
++  time_t start, end;
+ 
+   scanf("%u %lf", &D, &dampingFactor);
+-  matrixAlloc(&matriz, D, D);
+ 
+-  while (scanf("%u %u", &i, &j) == 2) {
+-    matriz[i][j] = 1;
++  for (i = 0; i < _TOTAL; i++) {
++    time(&start);
++    matrixAlloc(&matriz, D, D);
++
++    srand((unsigned)time(NULL));
++    for (j = 0; j < D; i++) {
++      matriz[rand() % D][rand() % D] = 1;
++    }
++
++    stochasticMatrix(matriz, D, D);
++    dampMatrix(matriz, dampingFactor, D, D);
++
++    copyMatrix(&saida, matriz, D, D);
++    expontiationUntilConverge(&saida, matriz, D, 0);
++    printIndexedVector(saida[0], D);
++
++    matrixFree(saida, D);
++    matrixFree(matriz, D);
++
++    time(&end);
++    tempo[i] = difftime(end, start);
++    // printf("Your calculations took %lf seconds to run.\n", tempo[i]);
+   }
+ 
+-  stochasticMatrix(matriz, D, D);
+-  dampMatrix(matriz, dampingFactor, D, D);
+-
+-  copyMatrix(&saida, matriz, D, D);
+-  expontiationUntilConverge(&saida, matriz, D, 0);
+-  printIndexedVector(saida[0], D);
++  for (i = 0; i < _TOTAL; i++) {
++    printf("%lf ", tempo[i]);
++    media += tempo[i];
++  }
+ 
+-  matrixFree(saida, D);
+-  matrixFree(matriz, D);
++  printf("\nYour media is %lf.\n", tempo[i]);
+ 
+   return 0;
+ }
